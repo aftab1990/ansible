@@ -1,16 +1,23 @@
 ---
-# playbook that exercies a serial patch and reboot of all the specified hosts
+# playbook that exercises a serial patch and reboot of all the specified hosts
 - name: patch and reboot
   hosts: all
-  gather_facts: no
-  serial: 1
   become: true
+  gather_facts: true
+  
   tasks:
-    - name: upgrade packages
-      ansible.builtin.apt:
+    - name: Update package cache
+      package:
         name: "*"
         state: latest
-      become: true
-    
+        update_cache: yes
+      changed_when: false
+
+    - name: Upgrade all packages
+      package:
+        name: "*"
+        state: latest
+      changed_when: true
+
     - name: reboot host
       ansible.builtin.reboot:
