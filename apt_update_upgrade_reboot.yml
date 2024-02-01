@@ -1,24 +1,36 @@
 ---
-- hosts: all
-  gather_facts: yes
-  become: yes
+- hosts: all  # Target all hosts in your inventory
+  become: true  # Execute tasks with elevated privileges
 
   tasks:
-    - name: Perform a dist-upgrade.
-      ansible.builtin.apt:
-        upgrade: dist
-        update_cache: yes
+    - name: Update package lists
+      apt:
+        update_cache: yes  # Explicitly update cache for consistency
+        cache_valid_time: 86400  # Update cache only if older than 24 hours (optional)
 
-    - name: Check if a reboot is required.
-      ansible.builtin.stat:
-        path: /var/run/reboot-required
-        get_checksum: no
-      register: reboot_required_file
+    - name: Upgrade packages
+      apt:
+        upgrade: yes
 
-    - name: Reboot the server (if required).
-      ansible.builtin.reboot:
-      when: reboot_required_file.stat.exists == true
+    - name: Optional: Automatically remove unused dependencies
+      apt:
+        autoremove: yes  # Enable optional cleanup (uncomment if needed)
 
-    - name: Remove dependencies that are no longer required.
-      ansible.builtin.apt:
-        autoremove: yes
+    - name: Optional: Perform additional system optimization (uncomment to include)
+      command: "{{ optional_system_optimization_command }}"
+      delegate_to: localhost  # Execute on the controlling machine
+      when: optional_system_optimization_command is defined
+
+  handlers:
+    - name: Restart services if required
+      systemd:
+        name: "{{ item }}"
+        state: restarted
+        enabled: yes
+      with_items: "{{ services_to_restart }}"
+      when: services_to_restart is defined
+
+  vars:
+    # Define optional variables for customization
+    optional_system_optimization_command: ""
+    services_to_restart: []
