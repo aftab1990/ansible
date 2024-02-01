@@ -1,36 +1,7 @@
 ---
-- hosts: all  # Target all hosts in your inventory
-  become: true  # Execute tasks with elevated privileges
-
-  tasks:
-    - name: Update package lists
-      apt:
-        update_cache: yes  # Explicitly update cache for consistency
-        cache_valid_time: 86400  # Update cache only if older than 24 hours (optional)
-
-    - name: Upgrade packages
-      apt:
-        upgrade: yes
-
-    - name: Optional: Automatically remove unused dependencies
-      apt:
-        autoremove: yes  # Enable optional cleanup (uncomment if needed)
-
-    - name: Optional: Perform additional system optimization (uncomment to include)
-      command: "{{ optional_system_optimization_command }}"
-      delegate_to: localhost  # Execute on the controlling machine
-      when: optional_system_optimization_command is defined
-
-  handlers:
-    - name: Restart services if required
-      systemd:
-        name: "{{ item }}"
-        state: restarted
-        enabled: yes
-      with_items: "{{ services_to_restart }}"
-      when: services_to_restart is defined
-
-  vars:
-    # Define optional variables for customization
-    optional_system_optimization_command: ""
-    services_to_restart: []
+- name: Update and upgrade apt packages
+  become: true
+  apt:
+    upgrade: yes
+    update_cache: yes
+    cache_valid_time: 86400 #One day
