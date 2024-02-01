@@ -1,7 +1,15 @@
 ---
-- name: Update and upgrade apt packages
+# playbook that exercies a serial patch and reboot of all the specified hosts
+- name: patch and reboot
+  hosts: all
+  gather_facts: no
+  serial: 1
   become: true
-  apt:
-    upgrade: yes
-    update_cache: yes
-    cache_valid_time: 86400 #One day
+  tasks:
+    - name: upgrade packages
+      ansible.builtin.apt:
+        name: "*"
+        state: latest
+    
+    - name: reboot host
+      ansible.builtin.reboot:
